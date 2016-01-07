@@ -9,8 +9,10 @@
 import UIKit
 import ArcGIS
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, AGSMapViewTouchDelegate, AGSLayerCalloutDelegate {
     @IBOutlet weak var mapView: AGSMapView!
+
+    private let graphicsLayerIdentifier = "Graphics Layer"
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,14 +21,17 @@ class ViewController: UIViewController {
             return
         }
 
+        mapView.touchDelegate = self
+
         let serviceLayer = AGSTiledMapServiceLayer(URL: url)
         mapView.addMapLayer(serviceLayer, withName: "Basemap Tiled Layer")
 
         let layer = AGSGraphicsLayer.graphicsLayer() as! AGSGraphicsLayer
+        layer.calloutDelegate = self
 
         let myMarkerSymbol = AGSSimpleMarkerSymbol.simpleMarkerSymbolWithColor(UIColor.greenColor()) as! AGSSimpleMarkerSymbol
         layer.renderer = AGSSimpleRenderer(symbol: myMarkerSymbol)
-        mapView.addMapLayer(layer, withName: "Graphics Layer")
+        mapView.addMapLayer(layer, withName: graphicsLayerIdentifier)
         populateGraphicsLayer(layer)
     }
 
@@ -34,8 +39,9 @@ class ViewController: UIViewController {
         let baseLat = -31.9413524
         let baseLng = 115.8394953
 
-        var markers: Array<AGSGeometry> = [AGSGeometry]()
-        for i in 1...10 {
+        let envelope: AGSMutableEnvelope = AGSMutableEnvelope(spatialReference: AGSSpatialReference.webMercatorSpatialReference())
+        let names = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+        for i in 0...9 {
             let lat = baseLat + Double(Double(i) / 100.0)
             let lng = baseLng
 
@@ -44,14 +50,45 @@ class ViewController: UIViewController {
             let ge = AGSGeometryEngine.defaultGeometryEngine()
             let reprojectedPoint = ge.projectGeometry(myMarkerPoint, toSpatialReference: AGSSpatialReference.webMercatorSpatialReference())
 
-            let myGraphic = AGSGraphic(geometry: reprojectedPoint, symbol: nil, attributes: nil)
+            let attributes = [
+                "name": names[i],
+                "id": NSNumber(integer: i)
+            ]
+            let myGraphic = AGSGraphic(geometry: reprojectedPoint, symbol: nil, attributes: attributes)
 
             layer.addGraphic(myGraphic)
 
-            markers.append(reprojectedPoint)
+            envelope.unionWithEnvelope(reprojectedPoint.envelope)
         }
 
-        mapView.zoomToGeometry(markers.last, withPadding: 1000, animated: true)
+        mapView.zoomToEnvelope(envelope, animated: true)
+    }
+
+    //MARK: AGSMapViewTouchDelegate
+    func mapView(mapView: AGSMapView!, didClickAtPoint screen: CGPoint, mapPoint mappoint: AGSPoint!, features: [NSObject : AnyObject]!) {
+        guard let graphicLayerFeatures = features[graphicsLayerIdentifier] as? [AGSFeature] where features.keys.count > 0 else {
+            return
+        }
+
+        for feature in graphicLayerFeatures {
+            if feature.geometry is AGSPoint {
+                if let id = feature.attributeForKey("id") as? NSNumber {
+                    NSLog("Tapped Point: %@", id)
+                }
+            }
+        }
+    }
+
+    //MARK: AGSCalloutDelegate
+    func callout(callout: AGSCallout!, willShowForFeature feature: AGSFeature!, layer: AGSLayer!, mapPoint: AGSPoint!) -> Bool {
+        if feature.geometry is AGSPoint {
+            mapView.callout.title = feature.attributeAsStringForKey("name")
+            mapView.callout.detail = feature.attributeAsStringForKey("id")
+
+            return true
+        }
+
+        return false
     }
 }
 
