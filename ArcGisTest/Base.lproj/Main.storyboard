@@ -20,6 +20,15 @@
                         <subviews>
                             <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="XeT-wy-4Gq" customClass="AGSMapView">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="cPa-HW-UP1">
+                                        <rect key="frame" x="106" y="8" width="108" height="30"/>
+                                        <state key="normal" title="Get my location"/>
+                                        <connections>
+                                            <action selector="onGetMyLocation" destination="BYZ-38-t0r" eventType="touchUpInside" id="7oJ-Qg-JeX"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             </view>
                         </subviews>

@@ -9,10 +9,11 @@
 import UIKit
 import ArcGIS
 
-class ViewController: UIViewController, AGSMapViewTouchDelegate, AGSLayerCalloutDelegate {
+class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouchDelegate, AGSLayerCalloutDelegate, LocationObserverDelegate {
     @IBOutlet weak var mapView: AGSMapView!
 
     private let graphicsLayerIdentifier = "Graphics Layer"
+    private var locationObserver: LocationObserver?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,6 +22,7 @@ class ViewController: UIViewController, AGSMapViewTouchDelegate, AGSLayerCallout
             return
         }
 
+        mapView.layerDelegate = self
         mapView.touchDelegate = self
 
         let serviceLayer = AGSTiledMapServiceLayer(URL: url)
@@ -64,6 +66,10 @@ class ViewController: UIViewController, AGSMapViewTouchDelegate, AGSLayerCallout
         mapView.zoomToEnvelope(envelope, animated: true)
     }
 
+    @IBAction func onGetMyLocation() {
+        mapView.locationDisplay.startDataSource()
+    }
+
     //MARK: AGSMapViewTouchDelegate
     func mapView(mapView: AGSMapView!, didClickAtPoint screen: CGPoint, mapPoint mappoint: AGSPoint!, features: [NSObject : AnyObject]!) {
         guard let graphicLayerFeatures = features[graphicsLayerIdentifier] as? [AGSFeature] where features.keys.count > 0 else {
@@ -89,6 +95,51 @@ class ViewController: UIViewController, AGSMapViewTouchDelegate, AGSLayerCallout
         }
 
         return false
+    }
+
+    //MARK: AGSMapViewLayerDelegate
+    func mapViewDidLoad(mapView: AGSMapView!) {
+        locationObserver = LocationObserver(observableLocationDisplay: mapView.locationDisplay)
+        locationObserver?.delegate = self
+    }
+
+    //MARK: LocationObserverDelegate
+    func locationWasUpdated(observer: LocationObserver) {
+        NSLog("Location updated: %@", mapView.locationDisplay.mapLocation())
+
+        mapView.zoomToEnvelope(mapView.locationDisplay.mapLocation().envelope, animated: true)
+        locationObserver?.stopObserving()
+    }
+}
+
+protocol LocationObserverDelegate: class {
+    func locationWasUpdated(observer: LocationObserver)
+}
+
+class LocationObserver: NSObject {
+    let observable: AGSLocationDisplay
+    weak var delegate: LocationObserverDelegate?
+
+    deinit {
+        observable.removeObserver(self, forKeyPath: "location")
+    }
+
+    init(observableLocationDisplay: AGSLocationDisplay) {
+        observable = observableLocationDisplay
+
+        super.init()
+
+        observable.addObserver(self, forKeyPath: "location", options: .New, context: nil)
+    }
+
+    func stopObserving() {
+        observable.removeObserver(self, forKeyPath: "location")
+    }
+
+    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+        if keyPath == "location" {
+            delegate?.locationWasUpdated(self)
+        }
     }
 }
 
