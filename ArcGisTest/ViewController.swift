@@ -22,14 +22,14 @@ class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouch
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        guard let url = NSURL(string: "http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer") else {
+        guard let tiledURL = NSURL(string: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer") else {
             return
         }
 
         mapView.layerDelegate = self
         mapView.touchDelegate = self
 
-        let serviceLayer = AGSTiledMapServiceLayer(URL: url)
+        let serviceLayer = AGSTiledMapServiceLayer(URL: tiledURL)
         mapView.addMapLayer(serviceLayer, withName: "Basemap Tiled Layer")
 
         let graphicsLayer = AGSGraphicsLayer.graphicsLayer() as! AGSGraphicsLayer
