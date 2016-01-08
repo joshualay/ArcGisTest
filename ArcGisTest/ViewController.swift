@@ -22,7 +22,7 @@ class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouch
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        guard let tiledURL = NSURL(string: "http://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer") else {
+        guard let tiledURL = NSURL(string: "http://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer") else {
             return
         }
 
@@ -33,10 +33,17 @@ class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouch
         serviceLayer.renderNativeResolution = true
         mapView.addMapLayer(serviceLayer, withName: "Basemap Tiled Layer")
 
+        if let imageURL = NSURL(string: "http://imagery.arcgisonline.com/arcgis/rest/services/LandsatGLS/LandsatShadedBasemap/ImageServer") {
+            let imageLayer = AGSImageServiceLayer(URL: imageURL)
+            imageLayer.opacity = 0.3
+            mapView.addMapLayer(imageLayer)
+        }
+
         let graphicsLayer = AGSGraphicsLayer.graphicsLayer() as! AGSGraphicsLayer
         graphicsLayer.calloutDelegate = self
 
         let sketchLayer = AGSSketchGraphicsLayer.graphicsLayer() as! AGSSketchGraphicsLayer
+        sketchLayer.opacity = 0.5
         mapView.addMapLayer(sketchLayer, withName: sketchLayerIdentifier)
 
         let myMarkerSymbol = AGSSimpleMarkerSymbol.simpleMarkerSymbolWithColor(UIColor.greenColor()) as! AGSSimpleMarkerSymbol
