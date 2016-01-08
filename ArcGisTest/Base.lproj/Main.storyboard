@@ -18,18 +18,57 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="XeT-wy-4Gq" customClass="AGSMapView">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XeT-wy-4Gq" customClass="AGSMapView">
+                                <rect key="frame" x="-4" y="0.0" width="328" height="568"/>
                                 <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="cPa-HW-UP1">
-                                        <rect key="frame" x="106" y="8" width="108" height="30"/>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="cPa-HW-UP1">
+                                        <rect key="frame" x="110" y="8" width="108" height="30"/>
+                                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="30" id="CmB-yn-kGz"/>
+                                            <constraint firstAttribute="width" constant="108" id="V8K-Jc-aor"/>
+                                        </constraints>
                                         <state key="normal" title="Get my location"/>
                                         <connections>
                                             <action selector="onGetMyLocation" destination="BYZ-38-t0r" eventType="touchUpInside" id="7oJ-Qg-JeX"/>
                                         </connections>
                                     </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aXJ-V8-W1X">
+                                        <rect key="frame" x="111" y="51" width="106" height="30"/>
+                                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="106" id="Vuv-SU-GWW"/>
+                                            <constraint firstAttribute="height" constant="30" id="ksd-HH-Yc1"/>
+                                        </constraints>
+                                        <state key="normal" title="Start Sketching"/>
+                                        <connections>
+                                            <action selector="onStartSketching:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ZV6-iD-Scd"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lPI-rY-Qcp">
+                                        <rect key="frame" x="61" y="525" width="41" height="30"/>
+                                        <color key="backgroundColor" red="0.80000000000000004" green="0.80000000000000004" blue="0.80000000000000004" alpha="1" colorSpace="calibratedRGB"/>
+                                        <state key="normal" title="Union"/>
+                                        <connections>
+                                            <action selector="onUnionPolygon" destination="BYZ-38-t0r" eventType="touchUpInside" id="kkR-aB-DLb"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WyA-JN-HQr">
+                                        <rect key="frame" x="240" y="525" width="30" height="30"/>
+                                        <color key="backgroundColor" red="0.92929292919999995" green="0.92929292919999995" blue="0.92929292919999995" alpha="1" colorSpace="calibratedRGB"/>
+                                        <state key="normal" title="Diff"/>
+                                        <connections>
+                                            <action selector="onDiffPolygon" destination="BYZ-38-t0r" eventType="touchUpInside" id="oh8-D4-2qI"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstItem="cPa-HW-UP1" firstAttribute="top" secondItem="XeT-wy-4Gq" secondAttribute="top" constant="8" id="0V6-8K-wKr"/>
+                                    <constraint firstItem="cPa-HW-UP1" firstAttribute="centerX" secondItem="XeT-wy-4Gq" secondAttribute="centerX" id="QT2-1e-n7S"/>
+                                    <constraint firstItem="aXJ-V8-W1X" firstAttribute="top" secondItem="cPa-HW-UP1" secondAttribute="bottom" constant="13" id="mUh-D3-Uag"/>
+                                    <constraint firstItem="aXJ-V8-W1X" firstAttribute="centerX" secondItem="XeT-wy-4Gq" secondAttribute="centerX" id="nai-ny-gWu"/>
+                                </constraints>
                             </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>

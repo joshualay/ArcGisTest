@@ -13,7 +13,10 @@ class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouch
     @IBOutlet weak var mapView: AGSMapView!
 
     private let graphicsLayerIdentifier = "Graphics Layer"
+    private let sketchLayerIdentifier = "Sketch Layer"
     private var locationObserver: LocationObserver?
+    private var isSketching: Bool = false
+    private var drawingPolygons: [AGSGeometry] = [AGSGeometry]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,13 +31,16 @@ class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouch
         let serviceLayer = AGSTiledMapServiceLayer(URL: url)
         mapView.addMapLayer(serviceLayer, withName: "Basemap Tiled Layer")
 
-        let layer = AGSGraphicsLayer.graphicsLayer() as! AGSGraphicsLayer
-        layer.calloutDelegate = self
+        let graphicsLayer = AGSGraphicsLayer.graphicsLayer() as! AGSGraphicsLayer
+        graphicsLayer.calloutDelegate = self
+
+        let sketchLayer = AGSSketchGraphicsLayer.graphicsLayer() as! AGSSketchGraphicsLayer
+        mapView.addMapLayer(sketchLayer, withName: sketchLayerIdentifier)
 
         let myMarkerSymbol = AGSSimpleMarkerSymbol.simpleMarkerSymbolWithColor(UIColor.greenColor()) as! AGSSimpleMarkerSymbol
-        layer.renderer = AGSSimpleRenderer(symbol: myMarkerSymbol)
-        mapView.addMapLayer(layer, withName: graphicsLayerIdentifier)
-        populateGraphicsLayer(layer)
+        graphicsLayer.renderer = AGSSimpleRenderer(symbol: myMarkerSymbol)
+        mapView.addMapLayer(graphicsLayer, withName: graphicsLayerIdentifier)
+        populateGraphicsLayer(graphicsLayer)
     }
 
     private func populateGraphicsLayer(layer: AGSGraphicsLayer) {
@@ -68,6 +74,83 @@ class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouch
 
     @IBAction func onGetMyLocation() {
         mapView.locationDisplay.startDataSource()
+    }
+
+    @IBAction func onStartSketching(sender: UIButton) {
+        isSketching = !isSketching
+
+        if let sketchLayer = mapView.mapLayerForName(sketchLayerIdentifier) as? AGSSketchGraphicsLayer {
+            if isSketching {
+                sender.setTitle("Stop Sketching", forState: .Normal)
+
+                let polygon = AGSMutablePolygon(spatialReference: mapView.spatialReference)
+                sketchLayer.geometry = polygon
+                mapView.touchDelegate = sketchLayer
+            } else {
+                sender.setTitle("Start Sketching", forState: .Normal)
+                mapView.touchDelegate = self
+
+                if let sketchPolygon = sketchLayer.geometry where sketchPolygon.isValid() {
+                    let simplePoly = AGSGeometryEngine.defaultGeometryEngine().simplifyGeometry(sketchPolygon)
+                    let fillSymbol = AGSSimpleFillSymbol(color: UIColor.redColor(), outlineColor: UIColor.blackColor())
+                    let graphic = AGSGraphic(geometry: simplePoly, symbol: fillSymbol, attributes: nil)
+
+                    if let graphicsLayer = mapView.mapLayerForName(graphicsLayerIdentifier) as? AGSGraphicsLayer {
+                        graphicsLayer.addGraphic(graphic)
+
+                        drawingPolygons.append(simplePoly)
+                    }
+
+                    sketchLayer.clear()
+                }
+            }
+        }
+    }
+
+    @IBAction func onUnionPolygon() {
+        if let first = drawingPolygons.first as AGSGeometry?, let second = drawingPolygons.last as AGSGeometry? where drawingPolygons.count == 2 {
+            if AGSGeometryEngine.defaultGeometryEngine().geometry(first, overlapsGeometry: second) {
+                let unionedPolygon = AGSGeometryEngine.defaultGeometryEngine().unionGeometries(drawingPolygons)
+
+                drawingPolygons.removeAll()
+                if let graphicsLayer = mapView.mapLayerForName(graphicsLayerIdentifier) as? AGSGraphicsLayer {
+                    if let graphics = graphicsLayer.graphics as? [AGSGraphic] {
+                        for graphic in graphics {
+                            if graphic.geometry is AGSPolygon {
+                                graphicsLayer.removeGraphic(graphic)
+                            }
+                        }
+                    }
+
+                    let fillSymbol = AGSSimpleFillSymbol(color: UIColor.redColor(), outlineColor: UIColor.blackColor())
+                    let graphic = AGSGraphic(geometry: unionedPolygon, symbol: fillSymbol, attributes: nil)
+                    graphicsLayer.addGraphic(graphic)
+                }
+            }
+        }
+    }
+
+    @IBAction func onDiffPolygon() {
+        if let first = drawingPolygons.first as AGSGeometry?, let second = drawingPolygons.last as AGSGeometry? where drawingPolygons.count == 2 {
+            if AGSGeometryEngine.defaultGeometryEngine().geometry(second, withinGeometry: first) {
+                let diffedPolygon = AGSGeometryEngine.defaultGeometryEngine().differenceOfGeometry(first, andGeometry: second)
+
+                drawingPolygons.removeAll()
+                if let graphicsLayer = mapView.mapLayerForName(graphicsLayerIdentifier) as? AGSGraphicsLayer {
+                    if let graphics = graphicsLayer.graphics as? [AGSGraphic] {
+                        for graphic in graphics {
+                            if graphic.geometry is AGSPolygon {
+                                graphicsLayer.removeGraphic(graphic)
+                            }
+                        }
+                    }
+
+                    let fillSymbol = AGSSimpleFillSymbol(color: UIColor.redColor(), outlineColor: UIColor.blackColor())
+                    let graphic = AGSGraphic(geometry: diffedPolygon, symbol: fillSymbol, attributes: nil)
+                    graphicsLayer.addGraphic(graphic)
+                }
+            }
+        }
     }
 
     //MARK: AGSMapViewTouchDelegate
