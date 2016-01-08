@@ -30,6 +30,7 @@ class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouch
         mapView.touchDelegate = self
 
         let serviceLayer = AGSTiledMapServiceLayer(URL: tiledURL)
+        serviceLayer.renderNativeResolution = true
         mapView.addMapLayer(serviceLayer, withName: "Basemap Tiled Layer")
 
         let graphicsLayer = AGSGraphicsLayer.graphicsLayer() as! AGSGraphicsLayer
