@@ -11,6 +11,7 @@ import ArcGIS
 
 class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouchDelegate, AGSLayerCalloutDelegate, LocationObserverDelegate {
     @IBOutlet weak var mapView: AGSMapView!
+    @IBOutlet weak var totalAreaLabel: UILabel!
 
     private let graphicsLayerIdentifier = "Graphics Layer"
     private let sketchLayerIdentifier = "Sketch Layer"
@@ -108,25 +109,24 @@ class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouch
     }
 
     @IBAction func onUnionPolygon() {
-        if let first = drawingPolygons.first as AGSGeometry?, let second = drawingPolygons.last as AGSGeometry? where drawingPolygons.count == 2 {
-            if AGSGeometryEngine.defaultGeometryEngine().geometry(first, overlapsGeometry: second) {
-                let unionedPolygon = AGSGeometryEngine.defaultGeometryEngine().unionGeometries(drawingPolygons)
+        let unionedPolygon = AGSGeometryEngine.defaultGeometryEngine().unionGeometries(drawingPolygons)
 
-                drawingPolygons.removeAll()
-                if let graphicsLayer = mapView.mapLayerForName(graphicsLayerIdentifier) as? AGSGraphicsLayer {
-                    if let graphics = graphicsLayer.graphics as? [AGSGraphic] {
-                        for graphic in graphics {
-                            if graphic.geometry is AGSPolygon {
-                                graphicsLayer.removeGraphic(graphic)
-                            }
-                        }
+        drawingPolygons.removeAll()
+        if let graphicsLayer = mapView.mapLayerForName(graphicsLayerIdentifier) as? AGSGraphicsLayer {
+            if let graphics = graphicsLayer.graphics as? [AGSGraphic] {
+                for graphic in graphics {
+                    if graphic.geometry is AGSPolygon {
+                        graphicsLayer.removeGraphic(graphic)
                     }
-
-                    let fillSymbol = AGSSimpleFillSymbol(color: UIColor.redColor(), outlineColor: UIColor.blackColor())
-                    let graphic = AGSGraphic(geometry: unionedPolygon, symbol: fillSymbol, attributes: nil)
-                    graphicsLayer.addGraphic(graphic)
                 }
             }
+
+            let area = AGSGeometryEngine.defaultGeometryEngine().shapePreservingAreaOfGeometry(unionedPolygon, inUnit: .Hectares)
+            totalAreaLabel.text = String(format: "AREA: %.2f ha", area)
+
+            let fillSymbol = AGSSimpleFillSymbol(color: UIColor.redColor(), outlineColor: UIColor.blackColor())
+            let graphic = AGSGraphic(geometry: unionedPolygon, symbol: fillSymbol, attributes: nil)
+            graphicsLayer.addGraphic(graphic)
         }
     }
 
@@ -144,6 +144,9 @@ class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouch
                             }
                         }
                     }
+
+                    let area = AGSGeometryEngine.defaultGeometryEngine().shapePreservingAreaOfGeometry(diffedPolygon, inUnit: .Hectares)
+                    totalAreaLabel.text = String(format: "AREA: %.2f ha", area)
 
                     let fillSymbol = AGSSimpleFillSymbol(color: UIColor.redColor(), outlineColor: UIColor.blackColor())
                     let graphic = AGSGraphic(geometry: diffedPolygon, symbol: fillSymbol, attributes: nil)
@@ -164,6 +167,8 @@ class ViewController: UIViewController, AGSMapViewLayerDelegate, AGSMapViewTouch
                 if let id = feature.attributeForKey("id") as? NSNumber {
                     NSLog("Tapped Point: %@", id)
                 }
+            } else if feature.geometry is AGSPolygon {
+
             }
         }
     }
